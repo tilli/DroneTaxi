@@ -3,6 +3,7 @@
 PadDetection::PadDetection(QObject *parent, int width, int height) :
     QObject(parent)
 {
+    qDebug() << "Create PadDetection";
     // create a tracker that does:
     //  - 6x6 sized marker images
     //  - samples at a maximum of 6x6
@@ -10,7 +11,7 @@ PadDetection::PadDetection(QObject *parent, int width, int height) :
     //  - can load a maximum of 1 pattern
     //  - can detect a maximum of 8 patterns in one image
     tracker = new ARToolKitPlus::TrackerSingleMarker(width, height);
-    if(!tracker->init("data/no_distortion.cal", 1.0f, 1000.0f)) {
+    if(!tracker->init("/opt/dronetaxi/bin/no_distortion.cal", 1.0f, 1000.0f)) {
         qDebug() << Q_FUNC_INFO << "Tracker init failed";
         delete tracker;
         tracker = 0;
@@ -44,13 +45,15 @@ PadDetection::PadDetection(QObject *parent, int width, int height) :
     // tracker->setMarkerMode(ARToolKitPlus::MARKER_ID_BCH);
 
     // tracker->setPoseEstimator(ARToolKitPlus::POSE_ESTIMATOR_ORIGINAL)
+    qDebug() << "End create PadDetection";
 }
+
 PadDetection::~PadDetection() {
     if(tracker)
         delete tracker;
 }
 
-void PadDetection::detectPads(uchar * data) {
+void PadDetection::detectPads(const uchar * data) {
     if(!tracker) return;
     std::vector<int> markerIds = tracker->calc(data);
     tracker->selectBestMarkerByCf();

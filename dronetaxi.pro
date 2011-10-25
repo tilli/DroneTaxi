@@ -9,62 +9,80 @@ CONFIG += debug
 TARGET = dronetaxi
 TEMPLATE = app
 
-maemo5 {
-  AR_DRONE_SDK= $$(HOME)/ardrone_sdk
-  LIBS += -lARToolkitPlus
-} else {
-  AR_DRONE_SDK= $$(HOME)/ARDrone_SDK_1_5_Version_20101004
-  LIBS += -lARToolKitPlus
-}
-LIBS += -L$${AR_DRONE_SDK}/lib -lvlib -lsdk -lpc_ardrone
-
-CONFIG += link_pkgconfig
-PKGCONFIG += sdl
-
 SOURCES += main.cpp\
     dronecontrol.cpp \
     navdata.cpp \
     video.cpp \
+    videoprocessor.cpp \
     gauge.cpp \
     gaugelabel.cpp \
     gaugehorizon.cpp \
     mainwindow.cpp \
     paddetection.cpp \
-    joystick.cpp \
     gamesettingsdialog.cpp \
     gamemode.cpp \
     gamemodedronetaxi.cpp \
     gamemoderace.cpp \
     gamemodefreeflight.cpp \
     moresettingsdialog.cpp \
-    sdljoystick.cpp \
     helpdialog.cpp \
-    intro.cpp
+    intro.cpp \
+    ARToolkitPlus/src/TrackerSingleMarker.cpp \
+    ARToolkitPlus/src/Camera.cpp \
+    ARToolkitPlus/src/Tracker.cpp \
+    ARToolkitPlus/src/TrackerMultiMarker.cpp \
+    ARToolkitPlus/src/core/arBitFieldPattern.cpp \
+    ARToolkitPlus/src/core/arMultiActivate.cpp \
+    ARToolkitPlus/src/core/arDetectMarker.cpp \
+    ARToolkitPlus/src/core/arMultiGetTransMat.cpp \
+    ARToolkitPlus/src/core/arDetectMarker2.cpp \
+    ARToolkitPlus/src/core/arMultiGetTransMatHull.cpp \
+    ARToolkitPlus/src/core/arGetCode.cpp \
+    ARToolkitPlus/src/core/arMultiReadConfigFile.cpp \
+    ARToolkitPlus/src/core/arGetInitRot2.cpp \
+    ARToolkitPlus/src/core/arUtil.cpp \
+    ARToolkitPlus/src/core/arGetMarkerInfo.cpp \
+    ARToolkitPlus/src/core/mPCA.cpp \
+    ARToolkitPlus/src/core/arGetTransMat.cpp \
+    ARToolkitPlus/src/core/matrix.cpp \
+    ARToolkitPlus/src/core/arGetTransMat2.cpp \
+    ARToolkitPlus/src/core/paramDecomp.cpp \
+    ARToolkitPlus/src/core/arGetTransMat3.cpp \
+    ARToolkitPlus/src/core/paramDistortion.cpp \
+    ARToolkitPlus/src/core/arGetTransMatCont.cpp \
+    ARToolkitPlus/src/core/rppGetTransMat.cpp \
+    ARToolkitPlus/src/core/arLabeling.cpp \
+    ARToolkitPlus/src/core/rppMultiGetTransMat.cpp \
+    ARToolkitPlus/src/core/vector.cpp \
+    ARToolkitPlus/src/extra/BCH.cpp \
+    ARToolkitPlus/src/extra/Hull.cpp \
+    ARToolkitPlus/src/librpp/rpp.cpp \
+    ARToolkitPlus/src/librpp/rpp_svd.cpp \
+    ARToolkitPlus/src/librpp/arGetInitRot2Sub.cpp \
+    ARToolkitPlus/src/librpp/librpp.cpp \
+    ARToolkitPlus/src/librpp/rpp_vecmat.cpp \
+    ARToolkitPlus/src/librpp/rpp_quintic.cpp
 
-INCLUDEPATH += $${AR_DRONE_SDK}/ARDroneLib/Soft/Common \
-               $${AR_DRONE_SDK}/ARDroneLib/VP_SDK \
-               $${AR_DRONE_SDK}/ARDroneLib/VP_SDK/VP_Os/linux \
-               $${AR_DRONE_SDK}/ARDroneLib/VP_SDK/VP_Os \
-               $${AR_DRONE_SDK}/ARDroneLib/Soft/Lib \
-               $${AR_DRONE_SDK}/ARDroneLib/VLIB \
-               $${AR_DRONE_SDK}/ARDroneLib
+
+INCLUDEPATH += ARToolkitPlus/include
 
 HEADERS  +=  dronecontrol.h \
     navdata.h \
+    navdata_ardrone.h \
+    videoprocessor.h \
     video.h \
+    vlib.h \
     gauge.h \
     gaugelabel.h \
     gaugehorizon.h \
     mainwindow.h \
     paddetection.h \
-    joystick.h \
     gamesettingsdialog.h \
     gamemode.h \
     gamemodedronetaxi.h \
     gamemoderace.h \
     gamemodefreeflight.h \
     moresettingsdialog.h \
-    sdljoystick.h \
     helpdialog.h \
     intro.h
 
@@ -80,29 +98,26 @@ OTHER_FILES += \
     debian/copyright \
     debian/README \
     debian/rules \
-    dronetaxi.desktop.maemo5
-
-unix:!symbian {
-    maemo5 {
-        target.path = /opt/usr/bin
-    } else {
-        target.path = /usr/local/bin
-    }
-    INSTALLS += target
-}
-
-unix:!symbian {
-    desktopfile.files = $${TARGET}.desktop
-    maemo5 {
-        desktopfile.path = /usr/share/applications/hildon
-        icon64.path = /usr/share/icons/hicolor/64x64/apps
-        icon64.files = $${TARGET}.png
-        INSTALLS += icon64
-    } else {
-        desktopfile.path = /usr/share/applications
-    }
-    INSTALLS += desktopfile
-}
+    dronetaxi.desktop \
+    qtc_packaging/debian_harmattan/rules \
+    qtc_packaging/debian_harmattan/README \
+    qtc_packaging/debian_harmattan/manifest.aegis \
+    qtc_packaging/debian_harmattan/copyright \
+    qtc_packaging/debian_harmattan/control \
+    qtc_packaging/debian_harmattan/compat \
+    qtc_packaging/debian_harmattan/changelog \
+    data/dronetaxi.png
 
 RESOURCES += \
     dronteaxi_resources.qrc
+
+contains(MEEGO_EDITION,harmattan) {
+    target.path = /opt/dronetaxi/bin
+    desktop.files = dronetaxi.desktop
+    desktop.path = /usr/share/applications
+    icon.files = dronetaxi80x80.png
+    icon.path = /usr/share/icons/hicolor/80x80/apps
+    config.files = no_distortion.cal
+    config.path = /opt/dronetaxi/bin
+    INSTALLS += target desktop icon config
+}

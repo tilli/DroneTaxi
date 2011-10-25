@@ -12,7 +12,7 @@ class PadDetection : public QObject
 public:
     explicit PadDetection(QObject *parent, int width, int height);
     ~PadDetection();
-    void detectPads(uchar * data);
+    void detectPads(const uchar * data);
 signals:
     void padDetected(int num, float x, float y, float rot);
 public slots:

@@ -5,14 +5,15 @@
 #include <QGraphicsScene>
 #include <QProgressDialog>
 
-#include "video.h"
 #include "dronecontrol.h"
-#include "joystick.h"
 #include "gamesettingsdialog.h"
 #include "gamemodedronetaxi.h"
 #include "gamemoderace.h"
 #include "gamemodefreeflight.h"
 #include "intro.h"
+#include "video.h"
+
+#include "videoprocessor.h"
 
 #define STD_ALTITUDE 1000
 #define VERTICAL_VELOCITY 50
@@ -68,7 +69,6 @@ private:
     QGraphicsScene scene;
     DroneVideo video;
     DroneControl control;
-    Joystick joystick;
     bool controlsEnabled;
     int emergencyPressed;
     QTimer landTimer, droneAliveTimer, panicRecoveryTimer;

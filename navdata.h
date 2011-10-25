@@ -2,9 +2,7 @@
 #define NAVDATA_H
 
 #include <QObject>
-#undef _GNU_SOURCE // just get rid of error message double definition
-#include <navdata_common.h>
-#include "config.h"
+#include "navdata_ardrone.h"
 
 struct tag_t {
     unsigned int type;

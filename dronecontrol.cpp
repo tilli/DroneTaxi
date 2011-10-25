@@ -83,6 +83,11 @@ void DroneControl::setRoll(float val_)
     //    qDebug() << "setRoll=" << val_;
     droneThread->setDroneControl(m_pitch,m_roll,m_yaw,m_vv);
 };
+float fabs(float f) {
+    if (f >= 0) { return f; }
+    return 0 - f;
+}
+
 float DroneControl::roll() {return m_roll;};
 void DroneControl::setYaw(float val) {
     m_yaw=val;
@@ -208,7 +213,7 @@ void DroneControl::setConfShowHorizon(bool val)
 };
 bool DroneControl::confShowGauges()
 {
-    return droneSettings->value("showGuges",true).toBool();
+    return droneSettings->value("showGauges",true).toBool();
 };
 void DroneControl::setConfShowGauges(bool val)
 {

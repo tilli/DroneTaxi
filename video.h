@@ -10,21 +10,11 @@
 #include <QTimer>
 #include "dronecontrol.h"
 #include "paddetection.h"
+#include "videoprocessor.h"
 
-
-#undef _GNU_SOURCE // just get rid of error message double definition
 // #define TARGET_CPU_ARM 1
 #include <navdata.h>
-#include <VP_Os/vp_os_malloc.h>
-#include <VP_Os/vp_os_print.h>
-
-
-extern "C"
-{
-#include <VLIB/Stages/vlib_stage_decode.h>
-void vp_stages_YUV420P_to_RGB565(void *cfg, vp_api_picture_t *picture, uint8_t *dst, uint32_t dst_rbytes);
-
-}
+#include "vlib.h"
 
 #define FRONT_VIDEO_WIDTH 320.0f
 #define FRONT_VIDEO_HEIGHT 240.0f
@@ -48,7 +38,7 @@ public:
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
 public slots:
-    void frameUpdated();
+    void frameUpdated(const QImage &image);
     void padDetected(int num, float x, float y, float rot);
     void viewBottomCamera(bool);
     void enableVideo(bool enabled);
@@ -57,7 +47,7 @@ signals:
     void videoReceived();
 private:
     QHostAddress droneHost;  // Ip address of the drone
-    VideoThread *videoThread;
+    VideoProcessor *videoThread;
     QImage *image;
     PadDetection *padDetection;
     int padX, padY, padNum;
@@ -67,40 +57,6 @@ private:
 public: // for testing
     bool initialized, bottomCamera, videoHasBeenReceived;
     bool videoEnabled;
-};
-
-class VideoThread:public QThread {
-    Q_OBJECT
-public:
-    VideoThread(DroneVideo *parentp,QHostAddress host,QImage *_image);
-    ~VideoThread();
-    void run();
-    void sendVideoPort(QString cmd);
-    void decodeTransform(QByteArray &videoData);
-    QImage *imageData();
-    void setFrameSkip(int f);
-public slots:
-    void videoDataReady();
-    void timer();
-
-signals:
-    void frameUpdated();
-
-private:
-    QImage *image;
-    video_controller_t controller;
-    vp_api_picture_t picture;
-    int pictureWidth;
-    int pictureHeight;
-    bool luma_only;
-    unsigned int num_picture_decoded;
-    QHostAddress droneHost;  // Ip address of the drone
-    QTimer stateTimer;
-    volatile bool stopped;
-    DroneVideo *parent;
-    QUdpSocket videoSock;  // Navigation data receive socket port 5554
-    int videoFrameNumber;
-    int frameSkip;
 };
 
 #endif // VIDEO_H

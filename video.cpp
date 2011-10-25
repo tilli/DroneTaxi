@@ -21,7 +21,7 @@
 #include "video.h"
 #include <QGraphicsView>
 
-DroneVideo::DroneVideo() : videoWidth(FRONT_VIDEO_WIDTH), videoHeight(FRONT_VIDEO_HEIGHT)
+DroneVideo::DroneVideo() : videoThread(0), image(0), videoWidth(FRONT_VIDEO_WIDTH), videoHeight(FRONT_VIDEO_HEIGHT)
 {
     droneHost.setAddress("192.168.1.1");
     setPreferredSize(videoWidth,videoHeight);
@@ -29,7 +29,6 @@ DroneVideo::DroneVideo() : videoWidth(FRONT_VIDEO_WIDTH), videoHeight(FRONT_VIDE
     connect(padDetection, SIGNAL(padDetected(int,float,float, float)), this, SLOT(padDetected(int,float,float,float)));
     padFont = font();
     padFont.setPixelSize(PAD_LABEL_SIZE);
-    image = 0;
     videoThread = 0;
     videoEnabled = true;
     pad[0] = QPixmap(":/data/data/dt_pad1.png");
@@ -45,7 +44,7 @@ void DroneVideo::reset() {
     videoHasBeenReceived = false;
     initialized=false;
     viewBottomCamera(false);
-    if(image) {
+    if (image) {
         delete image;
         image = 0;
     }
@@ -53,23 +52,6 @@ void DroneVideo::reset() {
         delete videoThread;
         videoThread = 0;
     }
-}
-
-VideoThread::VideoThread(DroneVideo *parentp,QHostAddress host,QImage *_image)
-{
-    qDebug() << Q_FUNC_INFO;
-    image=_image;
-    stopped=false;
-    parent=parentp;
-    videoSock.bind(QHostAddress::Any,5555);
-    droneHost=host;
-    videoFrameNumber = 0;
-    frameSkip = 0;
-    start();
-};
-
-VideoThread::~VideoThread() {
-    videoSock.close();
 }
 
 void DroneVideo::paint(QPainter *painter,const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -91,8 +73,8 @@ void DroneVideo::paint(QPainter *painter,const QStyleOptionGraphicsItem *option,
         p.drawLine(0,0,image->width(),image->height());
         p.drawLine(image->width(),0,0,image->height());
         p.drawText(boundingRect(), "Waiting for video..");
-        videoThread=new VideoThread(this,droneHost,image);
-        connect(videoThread, SIGNAL(frameUpdated()), this, SLOT(frameUpdated()), Qt::QueuedConnection);
+        videoThread=new VideoProcessor(this);
+        connect(videoThread, SIGNAL(newImageProcessed(QImage)), this, SLOT(frameUpdated(QImage)), Qt::QueuedConnection);
         viewBottomCamera(false);
         initialized=true;
         update(boundingRect());
@@ -131,11 +113,11 @@ void DroneVideo::viewBottomCamera(bool bottom) {
     videoHeight = FRONT_VIDEO_HEIGHT;
     emit padDetected(0,0,0,0);
     if(videoThread) {
-        if(bottom) {
-            videoThread->setFrameSkip(DETECT_ON_NTH_FRAME);
-        } else {
-            videoThread->setFrameSkip(0);
-        }
+//        if(bottom) {
+//            videoThread->setFrameSkip(DETECT_ON_NTH_FRAME);
+//        } else {
+//            videoThread->setFrameSkip(0);
+//        }
     }
     /*
     if(bottom) {
@@ -158,14 +140,15 @@ void DroneVideo::viewBottomCamera(bool bottom) {
     }
 }
 
-void DroneVideo::frameUpdated() {
+void DroneVideo::frameUpdated(const QImage &newimage) {
     //    static QImage convertedImage;
     if(bottomCamera) {
         //        convertedImage = videoThread->imageData()->convertToFormat(QImage::Format_RGB888);
         //        padDetection->detectPads(convertedImage.bits());
 
-        padDetection->detectPads(videoThread->imageData()->bits());
+        padDetection->detectPads(newimage.bits());
     }
+    *image = newimage;
     update();
     if(!videoHasBeenReceived) {
         emit videoReceived();
@@ -186,108 +169,4 @@ void DroneVideo::enableVideo(bool enabled) {
     videoEnabled = enabled;
     if(!enabled && image)
         image->fill(0);
-}
-
-void VideoThread::run()
-{
-#define ACQ_WIDTH     320
-#define ACQ_HEIGHT    240
-#undef memset
-    memset(&controller,0,sizeof(controller));
-    memset(&picture,0,sizeof(picture));
-    pictureWidth= image->width();
-    pictureHeight=image->height();
-    int codec_type=UVLC_CODEC;
-    connect(&stateTimer,SIGNAL(timeout()),this,SLOT(timer()));
-    connect(&videoSock,SIGNAL(readyRead()),this,SLOT(videoDataReady()));
-    luma_only=FALSE;
-    num_picture_decoded=0;
-    /// Picture configuration
-    picture.format        = PIX_FMT_YUV420P;
-    picture.width         = pictureWidth;
-    picture.height        = pictureHeight;
-    picture.framerate     = 30;
-    picture.y_buf         = (uint8_t*)(void*)vp_os_malloc((size_t) pictureWidth*pictureHeight );
-    picture.cr_buf        = (uint8_t*)vp_os_malloc( pictureWidth*pictureHeight/4 );
-    picture.cb_buf        = (uint8_t*)vp_os_malloc( pictureWidth*pictureHeight/4 );
-    picture.y_line_size   = pictureWidth;
-    picture.cb_line_size  = pictureWidth / 2;
-    picture.cr_line_size  = pictureWidth / 2;
-    picture.y_pad         = 0;
-    picture.c_pad         = 0;
-    video_codec_open(&controller, (codec_type_t)UVLC_CODEC);
-    //stateTimer->start(1000);
-    sendVideoPort("AT");
-    while(!stopped) {
-        exec();
-    }
-}
-
-void VideoThread::timer()
-{
-    //  qDebug() << "thread Timer";
-
-}
-
-void VideoThread::sendVideoPort(QString cmd)
-{
-    QByteArray dgram;
-    dgram=cmd.toLatin1();
-    qDebug() << "videoThread::sendCmd= " << cmd+"\n" << "to " << droneHost ;
-    videoSock.writeDatagram(dgram.data(),dgram.size(),droneHost,5555);
-}
-
-void VideoThread::videoDataReady()
-{
-    qint64 l;
-    QByteArray videoData;
-
-    QHostAddress host;
-    quint16 port;
-    videoData.resize(videoSock.pendingDatagramSize());
-    l=videoSock.readDatagram(videoData.data(),videoData.size(),&host,&port);
-    // qDebug() << "videoThread::videoDataReady" <<" l=" << l << "from"  << host ;
-    decodeTransform(videoData);
-}
-
-void VideoThread::decodeTransform(QByteArray &videoData)
-{
-//    qDebug() << Q_FUNC_INFO;
-    videoFrameNumber++;
-    if(videoFrameNumber < frameSkip) return;
-    videoFrameNumber = 0;
-
-    controller.in_stream.bytes   = (uint32_t*)videoData.data();
-    controller.in_stream.used    = videoData.size();
-    controller.in_stream.size    = videoData.size();
-    controller.in_stream.index   = 0;
-    controller.in_stream.length  = 32;
-    controller.in_stream.code    = 0;
-
-    bool_t got_image = FALSE;
-    video_decode_blockline( &controller, &picture, &got_image );
-    //qDebug() <<"VideoThread::decodeTransform 2";
-    // video_decode_picture( &controller, &picture, &controller.in_stream, &got_image );
-    if( got_image )
-    {
-        //        qDebug() <<"VideoThread::decodeTransform got image" << picture.width << picture.height << image->byteCount() << image->bytesPerLine();
-        // we got one picture
-        // out->size = 1;
-        picture.complete = 1;
-        num_picture_decoded++;
-        //        memcpy(picture.)
-        vp_stages_YUV420P_to_RGB565(NULL,&picture,image->bits(),image->bytesPerLine());
-        emit frameUpdated();
-
-        //   qDebug() << "pic " << num_picture_decoded;
-    }
-};
-
-
-QImage *VideoThread::imageData() {
-    return image;
-}
-
-void VideoThread::setFrameSkip(int f){
-    frameSkip = f;
 }

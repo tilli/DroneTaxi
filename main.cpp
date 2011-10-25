@@ -19,17 +19,13 @@
   !
   *===================================================================*/
 #include <QtGui/QApplication>
-#include "dronecontrol.h"
-#include "video.h"
-#include "gaugehorizon.h"
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    QUrl *url;
     MainWindow window;
     app.connect(&window, SIGNAL(destroyed()), &app, SLOT(quit()));
-   // window.show();
+//    window.showFullScreen();
     return app.exec();
 }

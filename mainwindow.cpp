@@ -7,8 +7,7 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), ui(new Ui::MainWindow),
-    controlsEnabled(false), flightMode(FM_Landed),
-    emergencyPressed(0),  joystick(this),
+    controlsEnabled(false), flightMode(FM_Landed), emergencyPressed(0),
     dataReceived(false), batteryWarned(0), connectionProgress(this), gameMode(0)
 {
     intro = 0;
@@ -18,15 +17,11 @@ MainWindow::MainWindow(QWidget *parent) :
     scene.setBackgroundBrush(QBrush(Qt::black));
     scene.addItem(&video);
 
-    ui->rightSide->layout()->addWidget(&joystick);
     connect(ui->landButton, SIGNAL(clicked()), this, SLOT(flyToggled()));
     connect(ui->panicButton, SIGNAL(clicked()), this, SLOT(panicButton()));
     connect(&control, SIGNAL(navDataChanged()), this, SLOT(navDataChanged()));
-    connect(&joystick, SIGNAL(stickPosChanged(QPointF, float)), this, SLOT(joystickPositionChanged(QPointF, float)));
     connect(&droneAliveTimer, SIGNAL(timeout()), this, SLOT(droneHasDied()));
     connect(&panicRecoveryTimer, SIGNAL(timeout()), this, SLOT(panicRecovery()));
-    connect(&joystick, SIGNAL(landButtonPressed()), this, SLOT(flyToggled()));
-    connect(&joystick, SIGNAL(panicButtonPressed()), this, SLOT(panicButton()));
     panicRecoveryTimer.setInterval(10000);
     panicRecoveryTimer.setSingleShot(true);
     grabKeyboard();
@@ -90,56 +85,59 @@ void MainWindow::changeEvent(QEvent *e)
 void MainWindow::resizeEvent(QResizeEvent *e) {
 }
 
-void MainWindow::keyPressEvent ( QKeyEvent * event ) {
-    qDebug() << Q_FUNC_INFO << event->text();
-    if(event->key()==Qt::Key_Space) {
-        flyToggled();
-    } else if(event->key()==Qt::Key_Escape) {
-        panicButton();
-    } else if((event->key()==Qt::Key_Left || event->key()==Qt::Key_A)&& controlsEnabled) {
-        joystick.setX(-1);
-    } else if((event->key()==Qt::Key_Right || event->key()==Qt::Key_D) && controlsEnabled) {
-        joystick.setX(1);
-    } else if((event->key()==Qt::Key_Up || event->key()==Qt::Key_W) && controlsEnabled) {
-        joystick.setY(-1);
-    } else if((event->key()==Qt::Key_Down || event->key()==Qt::Key_S) && controlsEnabled) {
-        joystick.setY(1);
-    } else if(event->key()==Qt::Key_F) {
-        if(isFullScreen()) {
-            showNormal();
-        } else {
-            showFullScreen();
-        }
-    }  else if(event->key()==Qt::Key_B) {
-        viewBottomCamera(!video.bottomCamera);
-    }
+void MainWindow::keyPressEvent ( QKeyEvent * event )
+{
+//    qDebug() << Q_FUNC_INFO << event->text();
+//    if(event->key()==Qt::Key_Space) {
+//        flyToggled();
+//    } else if(event->key()==Qt::Key_Escape) {
+//        panicButton();
+//    } else if((event->key()==Qt::Key_Left || event->key()==Qt::Key_A)&& controlsEnabled) {
+//        joystick.setX(-1);
+//    } else if((event->key()==Qt::Key_Right || event->key()==Qt::Key_D) && controlsEnabled) {
+//        joystick.setX(1);
+//    } else if((event->key()==Qt::Key_Up || event->key()==Qt::Key_W) && controlsEnabled) {
+//        joystick.setY(-1);
+//    } else if((event->key()==Qt::Key_Down || event->key()==Qt::Key_S) && controlsEnabled) {
+//        joystick.setY(1);
+//    } else if(event->key()==Qt::Key_F) {
+//        if(isFullScreen()) {
+//            showNormal();
+//        } else {
+//            showFullScreen();
+//        }
+//    }  else if(event->key()==Qt::Key_B) {
+//        viewBottomCamera(!video.bottomCamera);
+//    }
 }
 
-void MainWindow::joystickPositionChanged(QPointF pos, float z) {
-    if(!controlsEnabled) return;
-    control.setPitch(pos.y()*PITCH_SPEED*controlSensitivity);
-    // qDebug() << Q_FUNC_INFO  << "setting pitch: " << pos.y()*PITCH_SPEED;
-    if(!joystick.supportsZ()) {
-        control.setRoll(pos.x()*ROLL_SPEED*controlSensitivity);
+void MainWindow::joystickPositionChanged(QPointF pos, float z)
+{
+//    if(!controlsEnabled) return;
+//    control.setPitch(pos.y()*PITCH_SPEED*controlSensitivity);
+//    // qDebug() << Q_FUNC_INFO  << "setting pitch: " << pos.y()*PITCH_SPEED;
+//    if(!joystick.supportsZ()) {
+//        control.setRoll(pos.x()*ROLL_SPEED*controlSensitivity);
 
-        if(flightMode == FM_Flying) {
-            control.setYaw(pos.x()*YAW_SPEED*controlSensitivity);
-        }
-    } else {
-        control.setYaw(z*ROLL_SPEED*controlSensitivity);
-        control.setRoll(pos.x()*YAW_SPEED*controlSensitivity);
-    }
+//        if(flightMode == FM_Flying) {
+//            control.setYaw(pos.x()*YAW_SPEED*controlSensitivity);
+//        }
+//    } else {
+//        control.setYaw(z*ROLL_SPEED*controlSensitivity);
+//        control.setRoll(pos.x()*YAW_SPEED*controlSensitivity);
+//    }
 }
 
-void MainWindow::keyReleaseEvent ( QKeyEvent * event ) {
-    qDebug() << Q_FUNC_INFO << event->text();
-    if(event->key()==Qt::Key_Left || event->key()==Qt::Key_Right
-            || event->key()==Qt::Key_A|| event->key()==Qt::Key_D) {
-        joystick.setX(0);
-    } else if(event->key()==Qt::Key_Up || event->key()==Qt::Key_Down
-              || event->key()==Qt::Key_W || event->key()==Qt::Key_S) {
-        joystick.setY(0);
-    }
+void MainWindow::keyReleaseEvent ( QKeyEvent * event )
+{
+//    qDebug() << Q_FUNC_INFO << event->text();
+//    if(event->key()==Qt::Key_Left || event->key()==Qt::Key_Right
+//            || event->key()==Qt::Key_A|| event->key()==Qt::Key_D) {
+//        joystick.setX(0);
+//    } else if(event->key()==Qt::Key_Up || event->key()==Qt::Key_Down
+//              || event->key()==Qt::Key_W || event->key()==Qt::Key_S) {
+//        joystick.setY(0);
+//    }
 }
 
 
@@ -421,7 +419,7 @@ void MainWindow::panicRecovery() {
 
 void MainWindow::introFinished() {
     intro = 0;
-    show();
+    showFullScreen();
     QSettings settings("com.symbio", "DroneTaxi");
     if(!settings.contains("help_has_been_given")) {
         HelpDialog help(this);
