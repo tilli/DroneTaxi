@@ -35,7 +35,7 @@ Intro::Intro(QWidget *parent) :
 
 void Intro::run() {
     showFullScreen();
-    view.show();
+    view.showFullScreen();
     timer.start();
     time.restart();
     view.fitInView(bgItem, Qt::KeepAspectRatio);

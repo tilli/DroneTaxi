@@ -1,43 +1,13 @@
+DroneTaxi modified for N9, work in progress
 
-=== Drone Taxi ===
+See https://github.com/vranki/DroneTaxi for original version.
 
-A game for AR.Drone and Maemo/Meego/Desktop Linux devices.
+Video feed and AR.Drone control are based on AR.Drone project at Nokia developer site:
+https://projects.developer.nokia.com/ardrone/wiki
 
+This program uses ARToolKit 2.2.1: http://www.hitl.washington.edu/artoolkit/
 
-Demo video:
-
-http://www.youtube.com/watch?v=erTAMOzdf0Y
-
-here are quick instructions:
+Licenced under GPL
 
 
- ** BUILD **
-
-You'll need:
-
- - artoolkitplus (2.2)
- - SDL
- - ARDrone SDK 1.5 in home directory with Kate Alhola's patch applied.
-
-ARDrone SDK is the difficult one, as 1.5 is not available anymore and latest
-is 1.6. I haven't tested if 1.6 requires the patch. I don't think i have
-persmission to distribute the patched version.
-
-http://www.developer.nokia.com/Community/Blogs/blog/kate-alholas-forum-nokia-blog/2010/12/23/ar-drone-with-meego
-
-See qmake file for hints and good luck.
-
-Artoolkitplus and espeak have been packaged as meego rpm's and will be
-in repos shortly.
-
- ** RUN **
-
- - you'll need espeak binary to get audio
-connect a PS3 gamepad via USB to control using it. We didn't get it to work on
-Meego but on Ubuntu laptop it works nicely.
-
-The code is originally based on Kate Alhola's mardrone (thanks!) and some references 
-to it may still be found.
-
--- 10.10.2011 Ville Ranki <ville.ranki@iki.fi>
-
+To run, open the project into QtCreator and deploy to N9

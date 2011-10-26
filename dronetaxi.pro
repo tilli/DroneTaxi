@@ -106,7 +106,8 @@ OTHER_FILES += \
     qtc_packaging/debian_harmattan/control \
     qtc_packaging/debian_harmattan/compat \
     qtc_packaging/debian_harmattan/changelog \
-    data/dronetaxi.png
+    data/dronetaxi.png \
+    README
 
 RESOURCES += \
     dronteaxi_resources.qrc
